@@ -66,6 +66,10 @@ local locationOfSnippet = vim.fn.stdpath('config') .. '/snippets/luasnippets.lua
 local directoryOfSnippet = vim.fn.stdpath('config') .. '/snippets/'
 local sourceLuaSnipCommand = "<cmd>source " .. locationOfSnippet .. '<cr>'
 keymap("n", "<leader><leader>s", sourceLuaSnipCommand , opts)
+keymap("n", "<C-h>", "<cmd> TmuxNavigateLeft <cr>", opts)
+keymap("n", "<C-j>", "<cmd> TmuxNavigateDown <cr>", opts)
+keymap("n", "<C-k>", "<cmd> TmuxNavigateUp <cr>", opts)
+keymap("n", "<C-l>", "<cmd> TmuxNavigateRight <cr>", opts)
 
 local cmp = require "cmp"
 cmp.setup({
@@ -145,7 +149,7 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
   vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-  vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+  vim.keymap.set('n', '<space>k', vim.lsp.buf.signature_help, bufopts)
   vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
   vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
   vim.keymap.set('n', '<space>wl', function()
@@ -187,10 +191,10 @@ require('lspconfig')['clangd'].setup {
 --
 -- Varun in future, this LSP only runs if you have .git in root folder or package.json
 -- Long story short upload your project to git to see this stuff.
--- require('lspconfig')['tsserver'].setup {
--- 	on_attach = on_attach,
--- 	capabilities = capabilities,
--- }
+require('lspconfig')['tsserver'].setup {
+	on_attach = on_attach,
+	capabilities = capabilities,
+}
 require('lspconfig')['jsonls'].setup {
 	on_attach = on_attach,
 	capabilities = capabilities,
@@ -207,7 +211,8 @@ require('lspconfig')['emmet_ls'].setup{
 	on_attach = on_attach,
 	capabilities = capabilities,
 }
-require('lspconfig')['pylsp'].setup {
+
+require('lspconfig')['pyright'].setup {
 	on_attach = on_attach,
 	capabilities = capabilities,
 }
@@ -294,8 +299,11 @@ require("nvim-autopairs").setup {
     map_cr = true,
 }
 require('Comment').setup()
-require("nvim-tree").setup({
-})
+-- CHANGE TREE HERE
+require("nvim-tree").setup({ })
+require("oil").setup()
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+
 require('nvim-ts-autotag').setup()
 
 
@@ -441,7 +449,12 @@ require("null-ls").setup({
 		-- require("null-ls").builtins.diagnostics.cpplint,
 		require("null-ls").builtins.diagnostics.eslint_d,
     require("null-ls").builtins.formatting.prettier,
-		-- require("null-ls").builtins.diagnostics.pylint,
+		-- require("null-ls").builtins.formatting.pylint,
+		require("null-ls").builtins.formatting.black,
+		-- require("null-ls").builtins.formatting.clang-format,
+    require("null-ls").builtins.diagnostics.mypy,
+    require("null-ls").builtins.diagnostics.ruff,
+
 	},
 })
 
@@ -591,6 +604,7 @@ vim.api.nvim_create_autocmd("FileType", {
 end,
     group = nvim_metals_group,
 })
+
 vim.keymap.set("n", "<F5>", ":lua require'dap'.continue()<CR>")
 vim.keymap.set("n", "<F10>", ":lua require'dap'.step_over()<CR>")
 vim.keymap.set("n", "<F11>", ":lua require'dap'.step_into()<CR>")

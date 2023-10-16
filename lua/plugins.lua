@@ -20,6 +20,12 @@ require("lazy").setup(
   'nvim-tree/nvim-web-devicons',
   'nvim-lualine/lualine.nvim',
   'kyazdani42/nvim-tree.lua',
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    -- Optional dependencies
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
   {'akinsho/bufferline.nvim', dependencies = 'nvim-tree/nvim-web-devicons'},
   'glepnir/dashboard-nvim',
   'nvim-lua/plenary.nvim',
@@ -43,7 +49,38 @@ require("lazy").setup(
   {'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim'},
   --debugging,
   'mfussenegger/nvim-dap',
-  'rcarriga/nvim-dap-ui',
+  {
+    'jay-babu/mason-nvim-dap.nvim',
+    event = 'VeryLazy',
+    dependencies = {
+      'williamboman/mason.nvim',
+      'mfussenegger/nvim-dap',
+    },
+    opts = {
+        handlers = {},
+      }
+  },
+  {
+    'rcarriga/nvim-dap-ui',
+    event = 'VeryLazy',
+    dependencies = {
+      'mfussenegger/nvim-dap',
+    },
+    config = function()
+      local dap = require('dap')
+      local dapui = require('dapui')
+      dapui.setup()
+      dap.listeners.after.event_initialized['dapui_config'] = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated['dapui_config'] = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited['dapui_config'] = function()
+        dapui.close()
+      end
+    end
+  },
   'theHamsta/nvim-dap-virtual-text',
   'nvim-telescope/telescope-dap.nvim',
   { 'TimUntersberger/neogit', dependencies = 'nvim-lua/plenary.nvim' },
@@ -57,4 +94,6 @@ require("lazy").setup(
   { "someone-stole-my-name/yaml-companion.nvim", dependencies = { { "neovim/nvim-lspconfig" }, { "nvim-lua/plenary.nvim" }, { "nvim-telescope/telescope.nvim" }, }, config = function() require("telescope").load_extension("yaml_schema") end, },
   { "folke/trouble.nvim", dependencies = { "nvim-tree/nvim-web-devicons" }, opts = { -- your configuration comes here or leave it empty to use the default settings refer to the configuration section below 
   }},
+  { 'xeluxee/competitest.nvim', dependencies = 'MunifTanjim/nui.nvim', config = function() require('competitest').setup() end, },
+  { 'christoomey/vim-tmux-navigator', lazy = false,}
 })
