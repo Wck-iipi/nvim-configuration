@@ -42,7 +42,12 @@ require("lazy").setup(
   'hrsh7th/nvim-cmp',
   'windwp/nvim-autopairs',
   'numToStr/Comment.nvim',
-  "L3MON4D3/LuaSnip",
+  --"L3MON4D3/LuaSnip",
+  {
+	"L3MON4D3/LuaSnip",
+	-- follow latest release.
+	version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+  },
   'saadparwaiz1/cmp_luasnip',
   'lewis6991/impatient.nvim',
   "EdenEast/nightfox.nvim",
@@ -91,7 +96,7 @@ require("lazy").setup(
   'windwp/nvim-ts-autotag',
   'github/copilot.vim',
   'MunifTanjim/prettier.nvim',
-  { "someone-stole-my-name/yaml-companion.nvim", dependencies = { { "neovim/nvim-lspconfig" }, { "nvim-lua/plenary.nvim" }, { "nvim-telescope/telescope.nvim" }, }, config = function() require("telescope").load_extension("yaml_schema") end, },
+  { "someone-stole-my-name/yaml-companion.nvim", event="VeryLazy",dependencies = { { "neovim/nvim-lspconfig" }, { "nvim-lua/plenary.nvim" }, { "nvim-telescope/telescope.nvim" }, }, config = function() require("telescope").load_extension("yaml_schema") end, },
   { "folke/trouble.nvim", dependencies = { "nvim-tree/nvim-web-devicons" }, opts = { -- your configuration comes here or leave it empty to use the default settings refer to the configuration section below 
   }},
   { 'xeluxee/competitest.nvim', dependencies = 'MunifTanjim/nui.nvim', config = function() require('competitest').setup() end, },

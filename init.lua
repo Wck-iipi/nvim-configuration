@@ -32,7 +32,7 @@ vim.o.termguicolors = true
 --:set termguicolors
 vim.opt.completeopt = {'menuone', 'noselect', 'noinsert', 'menu'}
 --:set completeopt=menu,menuone,noselect,noinsert
-vim.opt.smartindent = false
+vim.opt.smartindent = true
 require('plugins')
 local ls = require "luasnip"
 -----------------------------------------------------------KEYMAP SECTION------------------------------------------------------
@@ -132,6 +132,7 @@ cmp.setup.cmdline(':', {
 	})
 -----------------------------------------------------------KEYMAP SECTION------------------------------------------------------
 require("mason").setup()
+require("mason-nvim-dap").setup()
 require("mason-lspconfig").setup()
 -- Set up lspconfig.
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -159,6 +160,18 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+  if client.supports_method("textDocument/formatting") then
+    vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      group = augroup,
+      buffer = bufnr,
+      callback = function()
+          -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
+          -- on later neovim version, you should use vim.lsp.buf.format({ async = false }) instead
+          vim.lsp.buf.format({ bufnr = bufnr })
+      end,
+    })
+  end
 end
 
 require('lspconfig')['yamlls'].setup{
@@ -184,13 +197,13 @@ require('lspconfig')['yamlls'].setup{
 	}
 }
 
+-- In mac, don't download this in mason as clang is installed by default
 require('lspconfig')['clangd'].setup {
 	on_attach = on_attach,
 	capabilities = capabilities,
 }
---
 -- Varun in future, this LSP only runs if you have .git in root folder or package.json
--- Long story short upload your project to git to see this stuff.
+-- Long story short git init your folder
 require('lspconfig')['tsserver'].setup {
 	on_attach = on_attach,
 	capabilities = capabilities,
@@ -216,6 +229,11 @@ require('lspconfig')['pyright'].setup {
 	on_attach = on_attach,
 	capabilities = capabilities,
 }
+-- require('lspconfig')['pylsp'].setup {
+-- 	on_attach = on_attach,
+-- 	capabilities = capabilities,
+-- }
+
 
 -- require'lspconfig'.vuels.setup{}
     require('lspconfig')['vuels'].setup {
@@ -288,11 +306,9 @@ local opts = {
 }
 require('auto-session').setup(opts)
 
-require("indent_blankline").setup {
+require("ibl").setup {
 	-- for example, context is off by default, use this to turn it on
-  filetype_exclude = {"dashboard"},
-	show_current_context = true,
-	show_current_context_start = true,
+  exclude = { filetypes = {"dashboard"} }
 }
 require("nvim-autopairs").setup {
     map_c_w = true,
@@ -307,38 +323,37 @@ vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 require('nvim-ts-autotag').setup()
 
 
-local db = require('dashboard')
-  db.setup({
-    theme = 'hyper',
-    config = {
-      week_header = {
-       enable = true,
+require('dashboard').setup({
+  theme = 'hyper',
+  config = {
+    week_header = {
+     enable = true,
+    },
+    shortcut = {
+      { desc = '󰚰 Update', group = '@property', action = 'PackerUpdate', key = 'u' },
+      {
+        icon = ' ',
+        icon_hl = '@variable',
+        desc = 'Files',
+        group = 'Label',
+        action = 'Telescope find_files',
+        key = 'f',
       },
-      shortcut = {
-        { desc = '󰚰 Update', group = '@property', action = 'PackerUpdate', key = 'u' },
-        {
-          icon = ' ',
-          icon_hl = '@variable',
-          desc = 'Files',
-          group = 'Label',
-          action = 'Telescope find_files',
-          key = 'f',
-        },
-        {
-          desc = ' Init',
-          group = 'DiagnosticHint',
-          action = 'edit ~/.config/nvim/init.lua',
-          key = 'i',
-        },
-        {
-          desc = ' dotfiles',
-          group = 'Number',
-          action = 'Telescope dotfiles',
-          key = 'd',
-        },
+      {
+        desc = ' Init',
+        group = 'DiagnosticHint',
+        action = 'edit ~/.config/nvim/init.lua',
+        key = 'i',
+      },
+      {
+        desc = ' dotfiles',
+        group = 'Number',
+        action = 'Telescope dotfiles',
+        key = 'd',
       },
     },
-  })
+  },
+})
 -- dashboard setup
 -- local home = os.getenv('UserProfile')
 -- local db = require('dashboard') 
@@ -446,12 +461,12 @@ require("bufferline").setup()
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 require("null-ls").setup({
 	sources = {
-		-- require("null-ls").builtins.diagnostics.cpplint,
+		require("null-ls").builtins.diagnostics.cpplint,
 		require("null-ls").builtins.diagnostics.eslint_d,
     require("null-ls").builtins.formatting.prettier,
 		-- require("null-ls").builtins.formatting.pylint,
 		require("null-ls").builtins.formatting.black,
-		-- require("null-ls").builtins.formatting.clang-format,
+		require("null-ls").builtins.formatting.clang_format,
     require("null-ls").builtins.diagnostics.mypy,
     require("null-ls").builtins.diagnostics.ruff,
 
@@ -542,47 +557,69 @@ vim.diagnostic.config({
 --debugging
 
 local dap = require('dap')
-dap.adapters.cppdbg = {
-  id = 'cppdbg',
-  type = 'executable',
-  command = 'C:\\extension\\debugAdapters\\bin\\OpenDebugAD7.exe',
-  options = {
-    detached = false
-  }
-}
 
 
-dap.configurations.cpp = {
-  {
-    name = "Launch file",
-    type = "cppdbg",
-    request = "launch",
-    program = function()
-      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-    end,
-    cwd = '${workspaceFolder}',
-    stopAtEntry = true,
-  },
-  {
-    name = 'Attach to gdbserver :1234',
-    type = 'cppdbg',
-    request = 'launch',
-    MIMode = 'gdb',
-    miDebuggerServerAddress = 'localhost:1234',
-    miDebuggerPath = '/usr/bin/gdb',
-    cwd = '${workspaceFolder}',
-    program = function()
-      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-    end,
-  },
-	-- setupCommands = {  
-	-- 	{ 
-	-- 		text = '-enable-pretty-printing',
-	-- 		description =  'enable pretty printing',
-	-- 		ignoreFailures = false 
-	-- 	},
-	-- },
-}
+-- dap.adapters.cppdbg = {
+--   id = 'cppdbg',
+--   type = 'executable',
+--   command = 'C:\\extension\\debugAdapters\\bin\\OpenDebugAD7.exe',
+--   options = {
+--     detached = false
+--   }
+-- }
+--
+
+-- dap.configurations.cpp = {
+--   {
+--     name = "Launch file",
+--     type = "cppdbg",
+--     request = "launch",
+--     program = function()
+--       return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+--     end,
+--     cwd = '${workspaceFolder}',
+--     stopAtEntry = true,
+--   },
+--   {
+--     name = 'Attach to gdbserver :1234',
+--     type = 'cppdbg',
+--     request = 'launch',
+--     MIMode = 'gdb',
+--     miDebuggerServerAddress = 'localhost:1234',
+--     miDebuggerPath = '/usr/bin/gdb',
+--     cwd = '${workspaceFolder}',
+--     program = function()
+--       return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+--     end,
+--   },
+-- 	-- setupCommands = {  
+-- 	-- 	{ 
+-- 	-- 		text = '-enable-pretty-printing',
+-- 	-- 		description =  'enable pretty printing',
+-- 	-- 		ignoreFailures = false 
+-- 	-- 	},
+-- 	-- },
+-- }
+
+-- dap.adapters.codelldb {
+--   type = 'server',
+--   host = '127.0.0.1',
+--   port = 13000
+-- }
+--
+-- dap.configurations.cpp = {
+--   {
+--     name = "Launch file",
+--     type = "codelldb",
+--     request = "launch",
+--     program = function()
+--       return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+--     end,
+--     cwd = '${workspaceFolder}',
+--     stopOnEntry = false,
+--   },
+-- }
+
 require("dapui").setup()
 require("flutter-tools").setup{
     flutter_path = "D:/flutter/bin/flutter.bat",
@@ -609,6 +646,7 @@ vim.keymap.set("n", "<F5>", ":lua require'dap'.continue()<CR>")
 vim.keymap.set("n", "<F10>", ":lua require'dap'.step_over()<CR>")
 vim.keymap.set("n", "<F11>", ":lua require'dap'.step_into()<CR>")
 vim.keymap.set("n", "<F12>", ":lua require'dap'.step_out()<CR>")
+vim.keymap.set("n", "<F6>", ":lua require'dap'.terminate()<CR>")
 vim.keymap.set("n", "<leader>b", ":lua require'dap'.toggle_breakpoint()<CR>")
 vim.keymap.set("n", "<leader>B", ":lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition : '))<CR>")
 vim.keymap.set("n", "<leader>lp", ":lua require'dap'.set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>")
@@ -634,3 +672,4 @@ vim.o.updatetime = 250
 vim.cmd [[autocmd CursorHold,CursorHoldI * lua vim.diagnostic.open_float(nil, {focus=false})]]
 vim.cmd("colorscheme nordfox")
 -- Create a breakpoint in nvim-dap
+vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
