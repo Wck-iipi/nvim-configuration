@@ -15,6 +15,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup(
 {
+  'https://github.com/lewis6991/gitsigns.nvim',
   'nvim-treesitter/nvim-treesitter',
   'rmagatti/auto-session',
   'nvim-tree/nvim-web-devicons',

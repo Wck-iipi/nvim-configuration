@@ -1,3 +1,4 @@
+-- vim.g.NERDTreeShowHidden = 1
 -- If you want to disable it for certain files
 -- vim.g.copilot_filetypes = {
 --     ["*"] = false,
@@ -15,7 +16,7 @@
 vim.wo.number = true
 --:set number
 --:filetype on
-vim.opt.shell = "bash"
+vim.opt.shell = "zsh"
 --:set shell=powershell
 vim.wo.relativenumber = true
 --:set relativenumber
@@ -32,7 +33,7 @@ vim.o.termguicolors = true
 --:set termguicolors
 vim.opt.completeopt = {'menuone', 'noselect', 'noinsert', 'menu'}
 --:set completeopt=menu,menuone,noselect,noinsert
-vim.opt.smartindent = true
+vim.opt.smartindent = false
 require('plugins')
 local ls = require "luasnip"
 -----------------------------------------------------------KEYMAP SECTION------------------------------------------------------
@@ -647,6 +648,7 @@ vim.keymap.set("n", "<F10>", ":lua require'dap'.step_over()<CR>")
 vim.keymap.set("n", "<F11>", ":lua require'dap'.step_into()<CR>")
 vim.keymap.set("n", "<F12>", ":lua require'dap'.step_out()<CR>")
 vim.keymap.set("n", "<F6>", ":lua require'dap'.terminate()<CR>")
+vim.keymap.set("n", "<F7>", ":lua require'dap'.clear_breakpoints()<CR>")
 vim.keymap.set("n", "<leader>b", ":lua require'dap'.toggle_breakpoint()<CR>")
 vim.keymap.set("n", "<leader>B", ":lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition : '))<CR>")
 vim.keymap.set("n", "<leader>lp", ":lua require'dap'.set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>")
@@ -673,3 +675,5 @@ vim.cmd [[autocmd CursorHold,CursorHoldI * lua vim.diagnostic.open_float(nil, {f
 vim.cmd("colorscheme nordfox")
 -- Create a breakpoint in nvim-dap
 vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
+require('gitsigns').setup()
+vim.cmd("set signcolumn=yes:2")
